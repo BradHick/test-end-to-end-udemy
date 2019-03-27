@@ -7,7 +7,7 @@ context('Utilities', () => {
 
   it('Cypress._ - call a lodash method', () => {
     // https://on.cypress.io/_
-    cy.request('https://jsonplaceholder.typicode.com/users')
+    cy.request('https://jsonplaceholder.cypress.io/users')
       .then((response) => {
         let ids = Cypress._.chain(response.body).map('id').take(3).value()
 
@@ -34,6 +34,7 @@ context('Utilities', () => {
       .then((dataUrl) => {
         // create an <img> element and set its src to the dataUrl
         let img = Cypress.$('<img />', { src: dataUrl })
+
         // need to explicitly return cy here since we are initially returning
         // the Cypress.Blob.imgSrcToDataURL promise to our test
         // append the image
@@ -46,15 +47,37 @@ context('Utilities', () => {
 
   it('Cypress.minimatch - test out glob patterns against strings', () => {
     // https://on.cypress.io/minimatch
-    Cypress.minimatch('/users/1/comments', '/users/*/comments', {
+    let matching = Cypress.minimatch('/users/1/comments', '/users/*/comments', {
       matchBase: true,
     })
+
+    expect(matching, 'matching wildcard').to.be.true
+
+    matching = Cypress.minimatch('/users/1/comments/2', '/users/*/comments', {
+      matchBase: true,
+    })
+    expect(matching, 'comments').to.be.false
+
+    // ** matches against all downstream path segments
+    matching = Cypress.minimatch('/foo/bar/baz/123/quux?a=b&c=2', '/foo/**', {
+      matchBase: true,
+    })
+    expect(matching, 'comments').to.be.true
+
+    // whereas * matches only the next path segment
+
+    matching = Cypress.minimatch('/foo/bar/baz/123/quux?a=b&c=2', '/foo/*', {
+      matchBase: false,
+    })
+    expect(matching, 'comments').to.be.false
   })
 
 
   it('Cypress.moment() - format or parse dates using a moment method', () => {
     // https://on.cypress.io/moment
-    let time = Cypress.moment().utc('2014-04-25T19:38:53.196Z').format('h:mm A')
+    const time = Cypress.moment().utc('2014-04-25T19:38:53.196Z').format('h:mm A')
+
+    expect(time).to.be.a('string')
 
     cy.get('.utility-moment').contains('3:38 PM')
       .should('have.class', 'badge')
@@ -65,8 +88,12 @@ context('Utilities', () => {
     // https://on.cypress.io/promise
     let waited = false
 
+    /**
+     * @return Bluebird<string>
+     */
     function waitOneSecond () {
       // return a promise that resolves after 1 second
+      // @ts-ignore TS2351 (new Cypress.Promise)
       return new Cypress.Promise((resolve, reject) => {
         setTimeout(() => {
           // set waited to true
@@ -81,6 +108,7 @@ context('Utilities', () => {
     cy.then(() =>
     // return a promise to cy.then() that
     // is awaited until it resolves
+      // @ts-ignore TS7006
       waitOneSecond().then((str) => {
         expect(str).to.eq('foo')
         expect(waited).to.be.true
