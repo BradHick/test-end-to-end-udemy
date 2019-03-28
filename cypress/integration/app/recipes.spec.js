@@ -1,12 +1,6 @@
 const faker = require('faker');
+const { generateRecipe, generateUser } = require('../../utils/generate');
 
-const generateFakeRecipe = () => ({
-  title: faker.lorem.sentence(),
-  description: faker.lorem.sentence(4),
-  timeToCook: faker.random.number(),
-  ingredients: [faker.lorem.sentence(), faker.lorem.sentence()],
-  procedure: [faker.lorem.sentence(), faker.lorem.sentence()]
-});
 
 describe('The recipe creation process', () => {
 
@@ -14,11 +8,7 @@ describe('The recipe creation process', () => {
 
   beforeEach(() => {
 
-    fakeUser = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password()
-    };
+    fakeUser = generateUser();
 
     cy.request('POST', 'http://localhost:5678/api/v1/users/signup', fakeUser)
       .then((response) => {
@@ -32,7 +22,7 @@ describe('The recipe creation process', () => {
   it('Should create a recipe for the user', () => {
 
     // ARRANGE
-    const fakeRecipe = generateFakeRecipe();
+    const fakeRecipe = generateRecipe();
 
     // provide athenticated user
     cy.visit('http://localhost:5678');
