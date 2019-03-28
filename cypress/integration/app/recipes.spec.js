@@ -10,6 +10,25 @@ const generateFakeRecipe = () => ({
 
 describe('The recipe creation process', () => {
 
+  let fakeUser;
+
+  beforeEach(() => {
+
+    fakeUser = {
+      name: faker.name.findName(),
+      email: faker.internet.email(),
+      password: faker.internet.password()
+    };
+
+    cy.request('POST', 'http://localhost:5678/api/v1/users/signup', fakeUser)
+      .then((response) => {
+        cy.window().then((window) => {
+          window.localStorage.setItem('authUser', JSON.stringify(response.body));
+        });
+      });
+
+  });
+
   it('Should create a recipe for the user', () => {
 
     // ARRANGE
@@ -17,20 +36,6 @@ describe('The recipe creation process', () => {
 
     // provide athenticated user
     cy.visit('http://localhost:5678');
-    cy.get('[href="/auth/register"]').click();
-
-    const fakeUser = {
-      name: faker.name.findName(),
-      email: faker.internet.email(),
-      password: faker.internet.password()
-    };
-
-    cy.get('input[name="name"]').type(fakeUser.name);
-    cy.get('input[name="email"]').type(fakeUser.email);
-    cy.get('input[name="password"]').type(fakeUser.password);
-    cy.get('input[name="confirmPassword"]').type(fakeUser.password);
-
-    cy.get('.btn').click();
 
     // ACTION
 
